@@ -1,52 +1,40 @@
 package nebulose;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Properties;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.net.ConnectException;
+import java.sql.SQLException;
 
 public class HealthIT {
 
   @Test
-  void testOkRun() throws Exception {
-
-    var res = new FakeResponse();
-
-    var props = new Properties();
-    props.load(Files.newInputStream(Path.of(".env")));
-    var servlet =
-        new HealthServlet() {
-          @Override
-          public String getInitParameter(String name) {
-            return props.getProperty(name);
-          }
-        };
-    servlet.init();
-    assertNotNull(servlet.health);
-
-    servlet.doGet(null, res);
-    assertEquals("OK\n", res.out.toString());
+  void testOkHttp() throws Exception {
+    var config = Config.inetCheck();
+    var ok = Health.checkHTTP(config.checks.getFirst());
+    Assertions.assertNull(ok);
   }
 
   @Test
-  void testFailRun() throws Exception {
+  void testHttpFail() {
+    var config = new Config();
+    config.addCheck("http://127.0.0.1:34567/fail", null, null, null);
+    Assertions.assertThrows(
+        ConnectException.class, () -> Health.checkHTTP(config.checks.getFirst()));
+  }
 
-    var res = new FakeResponse();
+  @Test
+  void testMySql() throws Exception {
+    var config = new Config();
+    config.addCheck("jdbc:mysql://root:example@localhost:3307/mysql", null, null, null);
+    var ok = Health.checkSQL(config.checks.getFirst());
+    Assertions.assertNull(ok);
+  }
 
-    var health =
-        new HealthServlet() {
-          @Override
-          public String getInitParameter(String name) {
-            return "";
-          }
-        };
-    health.init();
-    assertNotNull(health.health);
-
-    health.doGet(null, res);
-    assertEquals(500, res.getStatus());
+  @Test
+  void testMySqlFail() {
+    var config = new Config();
+    config.addCheck("jdbc:mysql://root:bad@localhost:3307/mysql", null, null, null);
+    Assertions.assertThrows(SQLException.class, () -> Health.checkSQL(config.checks.getFirst()));
   }
 }

@@ -1,55 +1,49 @@
 package nebulose;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.sql.*;
+import java.time.Duration;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
+
+/** Static functions for easy testing */
 public class Health {
-  public class Check {
-    public String url;
-    public String host, update;
-    public int _interval = -1;
-    public String query;
-    Instant nextCheck;
-    private int timeout;
 
-    public int interval() {
-      return _interval == -1 ? Health.this.interval : _interval;
+  static String checkHTTP(Config.Check check) throws Exception {
+    var req = HttpRequest.newBuilder(new URI(check.url)).GET();
+    if (check.host != null) {
+      req.setHeader("Host", check.host);
     }
-
-    Check schedule() {
-      nextCheck = Instant.now().plusSeconds(interval());
-      return this;
-    }
-
-    public int timeout() {
-      return timeout == -1 ? Health.this.timeout : timeout;
+    try (var client =
+        HttpClient.newBuilder().connectTimeout(Duration.of(check.timeout, SECONDS)).build()) {
+      var resp = client.send(req.build(), HttpResponse.BodyHandlers.ofString());
+      int code = resp.statusCode();
+      if (code >= 200 && code < 300) {
+        return null;
+      } else {
+        return check.url + " " + code;
+      }
     }
   }
 
-  public int interval = 60;
-  private int timeout = 30;
-  private List<Check> checks = new ArrayList<>();
-
-  Stream<Check> checks() {
-    Instant now = Instant.now();
-    return checks.stream().filter(c -> c.nextCheck.isAfter(now));
-  }
-
-  Health addCheck(String url, String host, Integer interval) {
-    var c = new Check();
-    c.url = url;
-    c.host = host;
-    if (interval != null) {
-      c._interval = interval;
+  static String checkSQL(Config.Check check) throws SQLException {
+    if (check.query == null) {
+      check.query = "SELECT 1";
     }
-    checks.add(c.schedule());
-    return this;
-  }
+    try (Connection c = DriverManager.getConnection(check.url);
+        PreparedStatement stmt = c.prepareStatement(check.query)) {
 
-  Health inetCheck() {
-    addCheck("http://www.msftconnecttest.com/connecttest.txt", null, 15 * 60);
-    return this;
+      stmt.setQueryTimeout(check.timeout);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return null;
+        } else {
+          return "No results for " + check.query;
+        } // executeQuery try
+      }
+    } // Connection try
   }
 }
