@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Going deeper into Jakarta Enterprise Edition https://github.com/egalli64/jees2 -->
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0">
+
+    <display-name>Database Health</display-name>
+
+    <servlet>
+        <servlet-name>healthServlet</servlet-name>
+        <servlet-class>nebulose.HealthServlet</servlet-class>
+        <init-param>
+            <param-name>write.intervalSeconds</param-name>
+            <param-value>60</param-value>
+        </init-param>
+        <init-param>
+            <param-name>db.user</param-name>
+            <param-value>a</param-value>
+        </init-param>
+        <init-param>
+            <param-name>db.passwd</param-name>
+            <param-value>
+                checks:
+                - url: http://localhost/pim
+                  host: tal.com
+                - url: jdbc://localhost/tmp
+                  update: insert into tmp values (now())
+            </param-value>
+        </init-param>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>healthServlet</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+</web-app>

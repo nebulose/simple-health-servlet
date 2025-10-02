@@ -1,0 +1,6 @@
+interval: 30s
+checks:
+  - url: http://localhost/pim
+    host: tal.com
+  - url: jdbc://localhost/tmp
+    update: insert into tmp values (now())

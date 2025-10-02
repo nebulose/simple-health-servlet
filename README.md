@@ -1,0 +1,1 @@
+mvn package and drop it to tomcat or whatever
