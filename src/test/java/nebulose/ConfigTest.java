@@ -12,9 +12,9 @@ public class ConfigTest {
        defaultInterval: 456
        checks:
           - url: http://localhost/pim
-            host: tal.com
+            ask: tal.com
           - url: jdbc://localhost/tmp
-            query: insert into tmp values (now())
+            ask: insert into tmp values (now())
             interval: 600
             timeout: 300
  """;
@@ -26,15 +26,15 @@ public class ConfigTest {
 
     var one = config.checks.getFirst();
     Assertions.assertEquals("http://localhost/pim", one.url);
-    Assertions.assertEquals("tal.com", one.host);
+    Assertions.assertEquals("tal.com", one.ask);
     Assertions.assertEquals(123, one.timeout);
     Assertions.assertEquals(456, one.interval);
 
     var two = config.checks.get(1);
     Assertions.assertEquals("jdbc://localhost/tmp", two.url);
-    Assertions.assertNull(two.host);
+    Assertions.assertNotNull(two.ask);
     Assertions.assertEquals(600, two.interval);
     Assertions.assertEquals(300, two.timeout);
-    Assertions.assertEquals("insert into tmp values (now())", two.query);
+    Assertions.assertEquals("insert into tmp values (now())", two.ask);
   }
 }

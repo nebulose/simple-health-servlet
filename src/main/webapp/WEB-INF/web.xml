@@ -23,9 +23,9 @@
             <param-value>
                 checks:
                 - url: http://localhost/pim
-                  host: tal.com
+                  ask: tal.com
                 - url: jdbc://localhost/tmp
-                  update: insert into tmp values (now())
+                  ask: insert into tmp values (now())
             </param-value>
         </init-param>
     </servlet>

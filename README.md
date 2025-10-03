@@ -39,9 +39,9 @@ Default is 30 seconds
 
 The URL to check. If starts with http:// or https:// it will be checked
 as an HTTP check for a 200 status code. If starts with jdbc: it will be
-checked as a JDBC connection and a query will be run. See `query` below
+checked as a JDBC connection and the query in `ask` will be run.
 
-### query
+### ask
 
 If set, and `url` is HTTP the host header will be set to this value. Useful if the
 app is behind a reverse proxy or load balancer. If `url` is jdbc is the sql query to run

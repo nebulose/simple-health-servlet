@@ -11,27 +11,27 @@ import java.util.function.Consumer;
 public class Config {
   public static class Check {
     String url;
-    String host;
-    String query;
+    String ask;
     Instant nextCheck;
     int interval = 60;
     int timeout = 30;
-
-    Check() {}
 
     Check(String url) {
       this.url = url;
     }
 
-    public Check(String url, String query, int interval, int timeout) {
+    public Check(String url, String ask, int interval, int timeout) {
       this.url = url;
-      this.query = query;
+      this.ask = ask;
       this.interval = interval;
       this.timeout = timeout;
     }
 
+    void schedule(int seconds) {
+      nextCheck = Instant.now().plusSeconds(seconds);
+    }
     void schedule() {
-      nextCheck = Instant.now().plusSeconds(interval);
+      schedule(interval);
     }
   }
 
@@ -67,10 +67,6 @@ public class Config {
                 + config.defaultInterval);
       }
     }
-    if (!map.containsKey("checks")) {
-      logger.accept("No checks specified. Using default.");
-      config.checks.add(inetCheck());
-    }
 
     // CHECKS -----------
     var configChecks = map.get("checks");
@@ -80,24 +76,23 @@ public class Config {
           var check = (Map<?, ?>) configCheck;
           config.addCheck(
               (String) check.get("url"),
-              (String) check.get("host"),
+              (String) check.get("ask"),
               (Integer) check.get("interval"),
               (Integer) check.get("timeout"));
         } catch (ClassCastException e) {
           logger.accept("Error parsing" + configCheck + ". Skipping. ");
         }
       }
+    if (config.checks.isEmpty()) {
+      logger.accept("No checks specified. Using default.");
+      config.checks.add(inetCheck());
+    }
     return config;
   }
 
-  List<Check> pendingChecks() {
-    Instant now = Instant.now();
-    return checks.stream().filter(c -> c.nextCheck.isAfter(now)).toList();
-  }
-
-  void addCheck(String url, String host, Integer interval, Integer timeout) {
+  void addCheck(String url, String ask, Integer interval, Integer timeout) {
     var c = new Check(url);
-    c.host = host;
+    c.ask = ask;
     c.interval = interval == null ? defaultInterval : interval;
     c.timeout = timeout == null ? defaultTimeout : timeout;
     c.nextCheck = Instant.now().minusSeconds(1);
@@ -105,7 +100,6 @@ public class Config {
   }
 
   static Check inetCheck() {
-
     return new Check("http://www.msftconnecttest.com/connecttest.txt", null, 15 * 60, 10);
   }
 }

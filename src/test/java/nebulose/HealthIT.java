@@ -10,8 +10,7 @@ public class HealthIT {
 
   @Test
   void testOkHttp() throws Exception {
-    var config = Config.inetCheck();
-    var ok = Health.checkHTTP(config);
+    var ok = Health.checkHTTP(Config.inetCheck());
     Assertions.assertNull(ok);
   }
 
@@ -37,4 +36,6 @@ public class HealthIT {
     config.addCheck("jdbc:mysql://root:bad@localhost:3307/mysql", null, null, null);
     Assertions.assertThrows(SQLException.class, () -> Health.checkSQL(config.checks.getFirst()));
   }
+
+
 }
