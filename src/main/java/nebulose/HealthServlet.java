@@ -12,13 +12,10 @@ public class HealthServlet extends HttpServlet {
 
   @Override
   public void init() {
-    //    getServletContext().log("Starting HealthServlet");
-    readConfig();
-  }
-
-  private void readConfig() {
-    // var f = new File("config.yaml");
-    health = Config.inetCheck();
+    String conf = getInitParameter("config");
+    getServletContext().log("Health config:\n" + conf);
+    health = Config.fromString(conf, s -> getServletContext().log(s));
+    getServletContext().log("Health checks:\n" + health.toString());
   }
 
   @Override

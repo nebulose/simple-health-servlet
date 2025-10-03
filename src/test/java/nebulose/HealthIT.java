@@ -11,16 +11,16 @@ public class HealthIT {
   @Test
   void testOkHttp() throws Exception {
     var config = Config.inetCheck();
-    var ok = Health.checkHTTP(config.checks.getFirst());
+    var ok = Health.checkHTTP(config);
     Assertions.assertNull(ok);
   }
 
   @Test
   void testHttpFail() {
     var config = new Config();
-    config.addCheck("http://127.0.0.1:34567/fail", null, null, null);
     Assertions.assertThrows(
-        ConnectException.class, () -> Health.checkHTTP(config.checks.getFirst()));
+        ConnectException.class,
+        () -> Health.checkHTTP(new Config.Check("http://127.0.0.1:34567/fail")));
   }
 
   @Test
