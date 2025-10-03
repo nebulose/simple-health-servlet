@@ -1,14 +1,18 @@
 package nebulose;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class Config {
+
+  private static final Logger log = LoggerFactory.getLogger(Config.class);
+
   public static class Check {
     String url;
     String ask;
@@ -30,6 +34,7 @@ public class Config {
     void schedule(int seconds) {
       nextCheck = Instant.now().plusSeconds(seconds);
     }
+
     void schedule() {
       schedule(interval);
     }
@@ -39,7 +44,7 @@ public class Config {
   public int defaultTimeout = 30;
   public final List<Check> checks = new ArrayList<>();
 
-  static Config fromString(String conf, Consumer<String> logger) {
+  static Config fromString(String conf) {
     var yaml = new Yaml();
     Map<String, Object> map = yaml.load(conf);
     Config config = new Config();
@@ -49,22 +54,20 @@ public class Config {
       try {
         config.defaultTimeout = (int) map.get("defaultTimeout");
       } catch (ClassCastException e) {
-        logger.accept(
-            "Error parsing"
-                + map.get("defaultTimeout")
-                + " defaultTimeout must be an integer. Using default "
-                + config.defaultTimeout);
+        log.warn(
+            "Error parsing{} defaultTimeout must be an integer. Using default {}",
+            map.get("defaultTimeout"),
+            config.defaultTimeout);
       }
     }
     if (map.containsKey("defaultInterval")) {
       try {
         config.defaultInterval = (int) map.get("defaultInterval");
       } catch (ClassCastException e) {
-        logger.accept(
-            "Error parsing"
-                + map.get("defaultInterval")
-                + " defaultInterval must be an integer. Using default "
-                + config.defaultInterval);
+        log.warn(
+            "Error parsing{} defaultInterval must be an integer. Using default {}",
+            map.get("defaultInterval"),
+            config.defaultInterval);
       }
     }
 
@@ -80,11 +83,11 @@ public class Config {
               (Integer) check.get("interval"),
               (Integer) check.get("timeout"));
         } catch (ClassCastException e) {
-          logger.accept("Error parsing" + configCheck + ". Skipping. ");
+          log.warn("Error parsing {}. Skipping. ", configCheck);
         }
       }
     if (config.checks.isEmpty()) {
-      logger.accept("No checks specified. Using default.");
+      log.warn("No checks specified. Using default.");
       config.checks.add(inetCheck());
     }
     return config;

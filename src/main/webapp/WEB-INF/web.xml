@@ -11,20 +11,12 @@
         <servlet-name>healthServlet</servlet-name>
         <servlet-class>nebulose.HealthServlet</servlet-class>
         <init-param>
-            <param-name>write.intervalSeconds</param-name>
-            <param-value>60</param-value>
-        </init-param>
-        <init-param>
-            <param-name>db.user</param-name>
-            <param-value>a</param-value>
-        </init-param>
-        <init-param>
-            <param-name>db.passwd</param-name>
+            <param-name>config</param-name>
             <param-value>
                 checks:
                 - url: http://localhost/pim
                   ask: tal.com
-                - url: jdbc://localhost/tmp
+                - url: jdbc:mysql//localhost/tmp
                   ask: insert into tmp values (now())
             </param-value>
         </init-param>

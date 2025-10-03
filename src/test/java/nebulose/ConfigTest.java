@@ -20,7 +20,7 @@ public class ConfigTest {
  """;
 
     System.out.printf(conf);
-    var config = Config.fromString(conf, System.err::println);
+    var config = Config.fromString(conf);
     Assertions.assertEquals(123, config.defaultTimeout);
     Assertions.assertEquals(456, config.defaultInterval);
 

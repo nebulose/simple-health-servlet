@@ -3,6 +3,9 @@ package nebulose;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
@@ -10,17 +13,19 @@ import java.util.Objects;
 
 public class HealthServlet extends HttpServlet {
 
-  Config config;
-  Thread checkThread;
-  String[] errors;
-  boolean firstRun;
+  private static final Logger log = LoggerFactory.getLogger(HealthServlet.class);
+
+  private Config config;
+  private Thread checkThread;
+  private String[] errors;
+  private boolean firstRun = true;
 
   @Override
   public void init() {
     String conf = getInitParameter("config");
-    getServletContext().log("Health config:\n" + conf);
-    config = Config.fromString(conf, s -> getServletContext().log(s));
-    getServletContext().log("Health checks:\n" + config);
+    log.info("Health config:\n{}", conf);
+    config = Config.fromString(conf);
+    log.info("Health checks:\n{}", config);
 
     errors = new String[config.checks.size()];
     checkThread = new Thread(this::runChecksForever);
@@ -71,7 +76,7 @@ public class HealthServlet extends HttpServlet {
           }
         } catch (Exception e) {
           var msg = "ERROR " + check.url + ": " + e.getMessage();
-          log(msg);
+          log.error(msg);
           errors[i] = msg;
         }
         if (errors[i] != null) {
@@ -85,7 +90,7 @@ public class HealthServlet extends HttpServlet {
       if (firstRun) {
         boolean anyError = Arrays.stream(errors).anyMatch(Objects::nonNull);
         if (!anyError) {
-          log("First check run successfully. Future errors will be reported as 500");
+          log.info("First check run successfully. Future errors will be reported as 500");
           firstRun = false;
         }
       }
@@ -94,7 +99,7 @@ public class HealthServlet extends HttpServlet {
           //noinspection BusyWait
           Thread.sleep(waitMillis);
       } catch (InterruptedException e) {
-        log("Interrupted. Bye.");
+        log.warn("Interrupted. Bye.");
         return;
       }
     }
