@@ -23,6 +23,17 @@ public class HealthServlet extends HttpServlet {
   @Override
   public void init() {
     String conf = getInitParameter("config");
+
+    try {
+      Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
+    } catch (InstantiationException e) {
+      throw new RuntimeException(e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+
     log.info("Health config:\n{}", conf);
     config = Config.fromString(conf);
     log.info("Health checks:\n{}", config);
@@ -38,15 +49,15 @@ public class HealthServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws IOException {
 
-    String error = null;
+    String error = "";
     for (String e : errors) {
       if (e != null) {
-        error = e;
-        break;
+        error += e +"\n---\n";
+//        break;
       }
     }
 
-    if (error == null) {
+    if (error.isEmpty()) {
       response.setStatus(HttpServletResponse.SC_OK);
       response.setHeader("Content-Type", "text/plain");
       response.getWriter().print("OK");
@@ -74,8 +85,11 @@ public class HealthServlet extends HttpServlet {
           } else if (check.url.startsWith("jdbc:")) {
             errors[i] = Health.checkSQL(check);
           }
+        } catch (InterruptedException e) {
+          System.out.println("Interrupted checking. Bye.");
+          return;
         } catch (Exception e) {
-          var msg = "ERROR " + check.url + ": " + e.getMessage();
+          var msg = check.url + ": " + e.getMessage();
           log.error(msg);
           errors[i] = msg;
         }
@@ -86,20 +100,19 @@ public class HealthServlet extends HttpServlet {
         }
       } // END FOR checks
 
-
       if (firstRun) {
         boolean anyError = Arrays.stream(errors).anyMatch(Objects::nonNull);
         if (!anyError) {
-          log.info("First check run successfully. Future errors will be reported as 500");
+          log.error("First check run successfully. Future errors will be reported as 500");
           firstRun = false;
         }
       }
       long waitMillis = Health.nextRunMillis(config.checks);
       try {
-          //noinspection BusyWait
-          Thread.sleep(waitMillis);
+        //noinspection BusyWait
+        Thread.sleep(waitMillis);
       } catch (InterruptedException e) {
-        log.warn("Interrupted. Bye.");
+        System.out.println("Interrupted sleeping. Bye.");
         return;
       }
     }

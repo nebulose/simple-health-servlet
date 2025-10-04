@@ -38,6 +38,24 @@ public class Config {
     void schedule() {
       schedule(interval);
     }
+
+    @Override
+    public String toString() {
+      return "Check{"
+          + "url='"
+          + url
+          + '\''
+          + ", ask='"
+          + ask
+          + '\''
+          + ", nextCheck="
+          + nextCheck
+          + ", interval="
+          + interval
+          + ", timeout="
+          + timeout
+          + '}';
+    }
   }
 
   public int defaultInterval = 60;
@@ -55,7 +73,7 @@ public class Config {
         config.defaultTimeout = (int) map.get("defaultTimeout");
       } catch (ClassCastException e) {
         log.warn(
-            "Error parsing{} defaultTimeout must be an integer. Using default {}",
+            "Error parsing {}: defaultTimeout must be an integer. Using default {}",
             map.get("defaultTimeout"),
             config.defaultTimeout);
       }
@@ -65,7 +83,7 @@ public class Config {
         config.defaultInterval = (int) map.get("defaultInterval");
       } catch (ClassCastException e) {
         log.warn(
-            "Error parsing{} defaultInterval must be an integer. Using default {}",
+            "Error parsing {}: defaultInterval must be an integer. Using default {}",
             map.get("defaultInterval"),
             config.defaultInterval);
       }
@@ -104,5 +122,17 @@ public class Config {
 
   static Check inetCheck() {
     return new Check("http://www.msftconnecttest.com/connecttest.txt", null, 15 * 60, 10);
+  }
+
+  @Override
+  public String toString() {
+    return "Config{"
+        + "defaultInterval="
+        + defaultInterval
+        + ", defaultTimeout="
+        + defaultTimeout
+        + ", checks="
+        + checks
+        + '}';
   }
 }

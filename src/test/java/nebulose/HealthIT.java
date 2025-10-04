@@ -36,6 +36,4 @@ public class HealthIT {
     config.addCheck("jdbc:mysql://root:bad@localhost:3307/mysql", null, null, null);
     Assertions.assertThrows(SQLException.class, () -> Health.checkSQL(config.checks.getFirst()));
   }
-
-
 }

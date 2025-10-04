@@ -14,10 +14,10 @@
             <param-name>config</param-name>
             <param-value>
                 checks:
-                - url: http://localhost/pim
-                  ask: tal.com
-                - url: jdbc:mysql//localhost/tmp
-                  ask: insert into tmp values (now())
+                - url: http://127.0.0.1:8080/
+                  ask: virtualhost.domain
+                - url: jdbc:mysql://root:example@localhost:3307/mysql
+                  ask: select * from db
             </param-value>
         </init-param>
     </servlet>
